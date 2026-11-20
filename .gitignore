@@ -1,0 +1,21 @@
+# Sensitive runtime state: never commit or upload
+/data/
+**/data/.secret_key
+**/data/keys/*.pem
+**/data/*.db
+**/data/*.db-*
+*.sqlite
+*.sqlite3
+.env
+.env.*
+!.env.example
+# Python and tooling
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.log
+.vscode/
+.idea/
+.DS_Store

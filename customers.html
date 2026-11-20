@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block page_title %}Customers & Licensees{% endblock %}
+{% block content %}
+
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-title">Customer Directory</div>
+    <a href="{{ url_for('generate_license') }}" class="btn btn-primary btn-sm">+ Add New Customer / License</a>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Customer Name</th>
+        <th>Company / Firm</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Total Licenses</th>
+        <th>Created</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in customers %}
+      <tr>
+        <td><strong>{{ c.name }}</strong></td>
+        <td>{{ c.company|default('—') }}</td>
+        <td><a href="mailto:{{ c.email }}" style="color: #60a5fa; text-decoration: none;">{{ c.email|default('—') }}</a></td>
+        <td>{{ c.phone|default('—') }}</td>
+        <td><span class="metric-badge badge-blue">{{ c.license_count }} Active</span></td>
+        <td style="color: var(--text-dim); font-size: 12px;">{{ c.created_at[:10] }}</td>
+        <td style="color: var(--text-muted); font-size: 12px;">{{ c.notes|default('—') }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 32px;">No customers registered yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block page_title %}Settings & System Backup{% endblock %}
+{% block content %}
+
+<div class="panel" style="max-width: 900px; margin: 0 auto 32px;">
+  <div class="panel-header">
+    <div class="panel-title">Licensing Database Backup</div>
+    <span style="font-size: 12px; color: var(--accent-green);">Instant Snapshot</span>
+  </div>
+  <div style="padding: 24px;">
+    <p style="color: var(--text-muted); margin-bottom: 16px;">
+      Download an encrypted/clean SQLite snapshot of the entire licensing database containing all customers, generated keys, authorized hardware bindings, and audit trails.
+    </p>
+    <a href="{{ url_for('download_backup') }}" class="btn btn-primary">⬇ Download Database Backup (.db)</a>
+  </div>
+</div>
+
+<div class="panel" style="max-width: 900px; margin: 0 auto;">
+  <div class="panel-header">
+    <div class="panel-title">Asymmetric Cryptographic Keys (Ed25519)</div>
+    <span style="font-size: 12px; color: var(--accent-cyan);">Public Verification Key</span>
+  </div>
+  <div style="padding: 24px;">
+    <div style="margin-bottom: 20px;">
+      <label>Public Verification Key (PEM Format)</label>
+      <div style="position: relative; margin-top: 6px;">
+        <textarea readonly rows="6" style="width: 100%; font-family: monospace; font-size: 11px; color: #93c5fd; background: var(--bg-primary); border: 1px solid var(--border-color);">{{ pub_pem }}</textarea>
+        <button type="button" onclick="copyText(`{{ pub_pem }}`, this)" class="btn btn-secondary btn-sm" style="position: absolute; top: 10px; right: 10px;">Copy PEM</button>
+      </div>
+      <p style="font-size: 11px; color: var(--text-dim); margin-top: 6px;">
+        This public key is embedded in the Customer Edition executable to verify digital signatures offline.
+      </p>
+    </div>
+
+    <div>
+      <label>Public Key Raw Base64</label>
+      <div style="display: flex; gap: 8px; margin-top: 6px;">
+        <input type="text" readonly value="{{ pub_b64 }}" style="flex: 1; font-family: monospace; font-size: 12px; color: #34d399;">
+        <button type="button" onclick="copyText('{{ pub_b64 }}', this)" class="btn btn-secondary btn-sm">Copy</button>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; padding: 14px 18px; border-radius: 6px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
+      <strong style="color: #60a5fa;">🔒 Private Key Security Note:</strong>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+        The Ed25519 Private Signing Key is stored securely inside <code>owner_control_center/data/keys/ed25519_private.pem</code>. It is <strong>NEVER</strong> packaged or included in any customer executable or public download.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

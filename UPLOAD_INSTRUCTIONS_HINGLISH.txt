@@ -1,0 +1,33 @@
+STAR INVESTIGATOR - COMPLETE GITHUB FOLDER UPLOAD
+
+Problem: GitHub's 'Choose your files' dialog is a file picker and may not let you choose folders.
+
+EASIEST FIX (NO GIT SOFTWARE):
+1. Download this ZIP and RIGHT-CLICK > Extract All.
+2. Open https://github.com/abhishekkumar009988/pannel/upload/main
+3. In Windows File Explorer, open the extracted ZIP's folder.
+4. Drag-and-drop the three actual folders (templates, static, owner_services) onto the GitHub Upload files drop area.
+   Do NOT use 'Choose your files' for selecting a folder.
+5. Also drag the root code files (.env.example, .gitignore, Procfile, README.md,
+   owner_app.py, requirements.txt, run_owner_dashboard.bat, test_owner_init.py).
+6. Scroll to 'Commit changes' and confirm.
+GitHub documentation says folder drag-and-drop is supported, although browser behavior varies.
+
+ALTERNATIVE: ONE-CLICK GIT (BEST FOR MANY FILES)
+1. Make your repository PRIVATE (Settings > General > Danger Zone).
+2. Extract this ZIP fully.
+3. Double-click UPLOAD_TO_GITHUB.bat
+4. Press Y to continue. It clones the existing pannel repo, copies ALL three nested
+   folders and root code files, commits and pushes to the main branch.
+5. If Git isn't installed, the script opens https://git-scm.com/downloads/win .
+   Install Git once and double-click the BAT again.
+6. If prompted, log in to YOUR GitHub account in the browser.
+7. View uploaded files at https://github.com/abhishekkumar009988/pannel
+
+SECURITY:
+* This ZIP intentionally does NOT contain original licensing.db, data/.secret_key,
+  ed25519_private.pem, or other private runtime data.
+* Keep original ZIP securely backed up; never put it on PUBLIC GitHub.
+* Your repository was PUBLIC when checked. Prefer making it PRIVATE.
+* The BAT copies only an explicit allowlist; it does not upload the private data folder.
+* Direct upload through the ChatGPT GitHub connection was blocked by a 403 permission error.

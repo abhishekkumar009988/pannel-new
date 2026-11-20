@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block page_title %}Security Events & Tamper Alerts{% endblock %}
+{% block content %}
+
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-title">Security & Tamper Audit Logs</div>
+    <span style="font-size: 12px; color: var(--accent-red);">Hardware Mismatch, Signature Failures & Abuse Protection</span>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Timestamp (UTC)</th>
+        <th>Severity</th>
+        <th>Event Type</th>
+        <th>Source IP</th>
+        <th>Incident Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for evt in events %}
+      <tr>
+        <td style="color: var(--text-dim); font-size: 12px;">{{ evt.created_at[:19].replace('T', ' ') }}</td>
+        <td>
+          {% if evt.severity == 'critical' %}
+            <span class="metric-badge badge-red" style="font-weight: 800;">CRITICAL</span>
+          {% elif evt.severity == 'high' %}
+            <span class="metric-badge badge-red">HIGH</span>
+          {% elif evt.severity == 'medium' %}
+            <span class="metric-badge badge-yellow">MEDIUM</span>
+          {% else %}
+            <span class="metric-badge badge-dim">LOW</span>
+          {% endif %}
+        </td>
+        <td><code>{{ evt.event_type }}</code></td>
+        <td style="font-size: 11px; color: var(--text-dim);">{{ evt.ip_address|default('127.0.0.1') }}</td>
+        <td style="font-size: 12px; color: #f87171;">{{ evt.details|default('—') }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" style="text-align: center; color: var(--text-dim); padding: 36px;">✓ No security incidents or tampering events detected. All operations normal.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

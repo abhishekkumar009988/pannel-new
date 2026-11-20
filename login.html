@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Owner Sign In · Star Investigator License Control Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-body">
+  <div class="login-box">
+    <div class="login-header">
+      <div class="brand-icon" style="margin: 0 auto 16px; width: 48px; height: 48px; font-size: 24px;">★</div>
+      <h1 style="font-size: 20px; font-weight: 700; color: #fff;">STAR INVESTIGATOR</h1>
+      <p style="color: var(--accent-cyan); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">License Control Center</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('login') }}" style="display: flex; flex-direction: column; gap: 16px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group">
+        <label>Master Administrator Username</label>
+        <input type="text" name="username" required placeholder="owner" autofocus>
+      </div>
+      <div class="form-group">
+        <label>Master Password</label>
+        <input type="password" name="password" required placeholder="Enter password">
+      </div>
+      <button type="submit" class="btn btn-primary" style="margin-top: 8px; width: 100%;">Sign In to Control Center →</button>
+    </form>
+
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); text-align: center; font-size: 11px; color: var(--text-dim);">
+      Owner username: <code>owner</code>. Use the password set on first startup.
+    </div>
+  </div>
+</body>
+</html>

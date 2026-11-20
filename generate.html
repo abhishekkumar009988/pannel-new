@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block page_title %}Generate New License Key{% endblock %}
+{% block content %}
+
+<div class="panel" style="max-width: 900px; margin: 0 auto;">
+  <div class="panel-header">
+    <div class="panel-title">Cryptographic License Generator</div>
+    <span style="font-size: 12px; color: var(--accent-cyan);">Ed25519 Signed Entitlement</span>
+  </div>
+
+  <form method="post" action="{{ url_for('generate_license') }}" style="padding: 28px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <!-- Section 1: Customer Profile -->
+    <h3 style="font-size: 14px; text-transform: uppercase; color: var(--accent-blue); letter-spacing: 1px; margin-bottom: 16px;">1. Customer / Organization Information</h3>
+    
+    <div style="margin-bottom: 16px;">
+      <label style="display: inline-flex; align-items: center; gap: 8px; margin-right: 20px; cursor: pointer;">
+        <input type="radio" name="customer_mode" value="new" checked onclick="toggleCustMode('new')">
+        <span>Create New Customer</span>
+      </label>
+      <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+        <input type="radio" name="customer_mode" value="existing" onclick="toggleCustMode('existing')">
+        <span>Assign to Existing Customer</span>
+      </label>
+    </div>
+
+    <div id="newCustomerFields" class="form-grid" style="margin-bottom: 28px;">
+      <div class="form-group">
+        <label>Customer / Investigator Name *</label>
+        <input type="text" name="cust_name" placeholder="e.g. Rohit Kapoor / Apex Surveyors">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" name="cust_email" placeholder="client@domain.com">
+      </div>
+      <div class="form-group">
+        <label>Phone / WhatsApp Number</label>
+        <input type="text" name="cust_phone" placeholder="+91 9814121423">
+      </div>
+      <div class="form-group">
+        <label>Company / Firm Name</label>
+        <input type="text" name="cust_company" placeholder="M/S Star Investigators">
+      </div>
+      <div class="form-group full">
+        <label>Internal Client Notes</label>
+        <textarea name="cust_notes" rows="2" placeholder="Testing license for evaluation / Punjab region surveyor"></textarea>
+      </div>
+    </div>
+
+    <div id="existingCustomerField" class="form-group" style="display: none; margin-bottom: 28px;">
+      <label>Select Existing Customer</label>
+      <select name="existing_customer_id">
+        <option value="">-- Choose Existing Client --</option>
+        {% for c in customers %}
+          <option value="{{ c.id }}">{{ c.name }} {% if c.company %}({{ c.company }}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 28px;">
+
+    <!-- Section 2: License Specifications -->
+    <h3 style="font-size: 14px; text-transform: uppercase; color: var(--accent-blue); letter-spacing: 1px; margin-bottom: 16px;">2. Tier & Hardware Authorization</h3>
+    
+    <div class="form-grid" style="margin-bottom: 28px;">
+      <div class="form-group">
+        <label>License Edition / Tier</label>
+        <select name="license_type">
+          <option value="Professional" selected>Professional (Full OCR + 6-Page Reports)</option>
+          <option value="Standard">Standard Edition</option>
+          <option value="Trial">Trial / Evaluation Edition</option>
+          <option value="Enterprise">Enterprise Multi-Seat Edition</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Device Limit (Hardware-Locked Seats)</label>
+        <select name="device_count" id="deviceSelect" onchange="toggleDeviceCustom()">
+          <option value="1" selected>1 Device (Single Laptop)</option>
+          <option value="2">2 Devices</option>
+          <option value="3">3 Devices</option>
+          <option value="5">5 Devices</option>
+          <option value="10">10 Devices</option>
+          <option value="custom">Custom Seat Count...</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="customDeviceGroup" style="display: none;">
+        <label>Specify Custom Device Count</label>
+        <input type="number" name="custom_device_count" min="1" max="100" value="1">
+      </div>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 28px;">
+
+    <!-- Section 3: Duration & Expiration -->
+    <h3 style="font-size: 14px; text-transform: uppercase; color: var(--accent-blue); letter-spacing: 1px; margin-bottom: 16px;">3. Duration & Expiry Schedule</h3>
+
+    <div class="form-grid" style="margin-bottom: 28px;">
+      <div class="form-group">
+        <label>License Validity Duration</label>
+        <select name="duration" id="durationSelect" onchange="toggleDurationCustom()">
+          <option value="1">1 Day (Quick 24hr Demo)</option>
+          <option value="3">3 Days (Evaluation)</option>
+          <option value="7">7 Days (1 Week Trial)</option>
+          <option value="10">10 Days</option>
+          <option value="15">15 Days</option>
+          <option value="30" selected>30 Days (1 Month Standard)</option>
+          <option value="60">60 Days (2 Months)</option>
+          <option value="90">90 Days (Quarterly)</option>
+          <option value="180">180 Days (Half Year)</option>
+          <option value="365">1 Year (Annual License)</option>
+          <option value="custom_days">Custom Number of Days...</option>
+          <option value="custom_date">Custom Fixed Expiry Date...</option>
+          <option value="permanent">Permanent License (No Expiration)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Activation Clock Start Rule</label>
+        <select name="start_timing">
+          <option value="activation" selected>Start countdown on FIRST customer activation (Recommended)</option>
+          <option value="today">Start countdown immediately from TODAY</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="customDaysGroup" style="display: none;">
+        <label>Enter Custom Number of Days</label>
+        <input type="number" name="custom_days_val" min="1" max="3650" value="45">
+      </div>
+
+      <div class="form-group" id="customDateGroup" style="display: none;">
+        <label>Select Fixed Expiry Date</label>
+        <input type="date" name="custom_expiry_date">
+      </div>
+    </div>
+
+    <div class="form-group full" style="margin-bottom: 28px;">
+      <label>Administrative Notes (Optional)</label>
+      <input type="text" name="notes" placeholder="e.g. Issued for Q4 field testing, contact Rohit before renewing">
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 12px;">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-size: 14px;">⚡ Generate Secure License Key</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  function toggleCustMode(mode) {
+    document.getElementById('newCustomerFields').style.display = (mode === 'new') ? 'grid' : 'none';
+    document.getElementById('existingCustomerField').style.display = (mode === 'existing') ? 'flex' : 'none';
+  }
+
+  function toggleDeviceCustom() {
+    const val = document.getElementById('deviceSelect').value;
+    document.getElementById('customDeviceGroup').style.display = (val === 'custom') ? 'flex' : 'none';
+  }
+
+  function toggleDurationCustom() {
+    const val = document.getElementById('durationSelect').value;
+    document.getElementById('customDaysGroup').style.display = (val === 'custom_days') ? 'flex' : 'none';
+    document.getElementById('customDateGroup').style.display = (val === 'custom_date') ? 'flex' : 'none';
+  }
+</script>
+
+{% endblock %}

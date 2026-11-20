@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block page_title %}Registered Hardware & Devices{% endblock %}
+{% block content %}
+
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-title">Active Device Hardware Bindings ({{ devices|length }})</div>
+    <span style="font-size: 12px; color: var(--text-muted);">Hardware Slot Management & Laptop Transfers</span>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Device Fingerprint (SHA-256)</th>
+        <th>Device / Host Name</th>
+        <th>Bound License Key</th>
+        <th>Customer</th>
+        <th>First Seen</th>
+        <th>Last Seen</th>
+        <th>Slot Status</th>
+        <th style="text-align: right;">Slot Management</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for dev in devices %}
+      <tr>
+        <td>
+          <code style="font-family: monospace; font-size: 12px; color: #93c5fd; background: rgba(59, 130, 246, 0.1); padding: 3px 6px; border-radius: 4px;">
+            {{ dev.device_fingerprint }}
+          </code>
+        </td>
+        <td>
+          <strong>{{ dev.device_name|default('Windows Machine') }}</strong>
+          {% if dev.os_version %}
+            <div style="font-size: 11px; color: var(--text-dim);">{{ dev.os_version }}</div>
+          {% endif %}
+        </td>
+        <td>
+          <span class="key-code" style="font-size: 11px;">
+            {{ dev.license_key }}
+          </span>
+        </td>
+        <td>{{ dev.customer_name|default('—') }}</td>
+        <td style="font-size: 11px; color: var(--text-dim);">{{ dev.first_activated_at[:10] }}</td>
+        <td style="font-size: 11px; color: #34d399;">{{ dev.last_seen_at[:19].replace('T', ' ') }}</td>
+        <td>
+          {% if dev.is_active == 1 %}
+            <span class="metric-badge badge-green">Authorized</span>
+          {% else %}
+            <span class="metric-badge badge-dim">Deactivated</span>
+          {% endif %}
+        </td>
+        <td style="text-align: right;">
+          {% if dev.is_active == 1 %}
+            <form method="post" action="{{ url_for('deactivate_device', device_id=dev.id) }}" style="display:inline;" onsubmit="return confirm('Reset this device slot? The seat will be released and can be activated on a new laptop.');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-secondary btn-sm" style="color: #fb923c;" title="Release slot for device transfer">🔄 Reset / Transfer Seat</button>
+            </form>
+          {% else %}
+            <span style="font-size: 11px; color: var(--text-dim);">Slot Released</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 36px;">No devices activated yet. When clients activate on their laptops, they will appear here.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

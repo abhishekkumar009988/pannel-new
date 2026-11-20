@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block page_title %}Activation Audit Logs{% endblock %}
+{% block content %}
+
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-title">Client Activation & Heartbeat Log Trail</div>
+    <span style="font-size: 12px; color: var(--text-dim);">Immutable Audit Log of all Licensing Events</span>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Timestamp (UTC)</th>
+        <th>Event</th>
+        <th>License Key</th>
+        <th>Device Fingerprint</th>
+        <th>IP Address</th>
+        <th>Status</th>
+        <th>Audit Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td style="color: var(--text-dim); font-size: 12px;">{{ log.created_at[:19].replace('T', ' ') }}</td>
+        <td><code>{{ log.event_type }}</code></td>
+        <td><span class="key-code" style="font-size: 11px;">{{ log.license_key }}</span></td>
+        <td><code style="font-size: 11px; color: #94a3b8;">{{ log.device_fingerprint|default('—') }}</code></td>
+        <td style="font-size: 11px; color: var(--text-dim);">{{ log.ip_address|default('127.0.0.1') }}</td>
+        <td>
+          {% if log.status == 'success' %}
+            <span class="metric-badge badge-green">Success</span>
+          {% elif log.status == 'denied' %}
+            <span class="metric-badge badge-red">Denied</span>
+          {% else %}
+            <span class="metric-badge badge-yellow">{{ log.status|title }}</span>
+          {% endif %}
+        </td>
+        <td style="font-size: 12px; color: var(--text-main);">{{ log.details|default('—') }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 36px;">No activation logs recorded yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

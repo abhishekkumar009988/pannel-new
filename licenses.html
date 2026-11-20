@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block page_title %}Manage Licenses{% endblock %}
+{% block content %}
+
+<!-- Filter & Search Toolbar -->
+<div class="panel" style="padding: 16px 24px; margin-bottom: 24px;">
+  <form method="get" action="{{ url_for('licenses_list') }}" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 250px;">
+      <input type="text" name="search" value="{{ search_term }}" placeholder="Search by License Key, Customer Name, Email or Notes..." style="width: 100%;">
+    </div>
+
+    <div style="display: flex; gap: 8px;">
+      <a href="{{ url_for('licenses_list', status='all', search=search_term) }}" class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">All</a>
+      <a href="{{ url_for('licenses_list', status='active', search=search_term) }}" class="btn btn-sm {% if status_filter == 'active' %}btn-primary{% else %}btn-secondary{% endif %}">Active</a>
+      <a href="{{ url_for('licenses_list', status='expired', search=search_term) }}" class="btn btn-sm {% if status_filter == 'expired' %}btn-primary{% else %}btn-secondary{% endif %}">Expired</a>
+      <a href="{{ url_for('licenses_list', status='suspended', search=search_term) }}" class="btn btn-sm {% if status_filter == 'suspended' %}btn-primary{% else %}btn-secondary{% endif %}">Suspended</a>
+      <a href="{{ url_for('licenses_list', status='revoked', search=search_term) }}" class="btn btn-sm {% if status_filter == 'revoked' %}btn-primary{% else %}btn-secondary{% endif %}">Revoked</a>
+    </div>
+
+    <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+    {% if search_term or status_filter != 'all' %}
+      <a href="{{ url_for('licenses_list') }}" class="btn btn-secondary btn-sm" style="color: #94a3b8;">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Licenses Table Panel -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-title">All Generated Licenses ({{ licenses|length }})</div>
+    <a href="{{ url_for('generate_license') }}" class="btn btn-primary btn-sm">+ Generate New Key</a>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>License Key</th>
+        <th>Customer</th>
+        <th>Type</th>
+        <th>Devices (Used/Max)</th>
+        <th>Validity / Expiry</th>
+        <th>Status</th>
+        <th style="text-align: right;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lic in licenses %}
+      <tr {% if request.args.get('highlight') == lic.license_key %}style="background-color: rgba(59, 130, 246, 0.15); border-left: 3px solid #3b82f6;"{% endif %}>
+        <td>
+          <span class="key-code">
+            {{ lic.license_key }}
+            <button type="button" onclick="copyText('{{ lic.license_key }}', this)" title="Copy License Key" style="background:none; border:none; cursor:pointer; color:#94a3b8; font-size:14px;">📋</button>
+          </span>
+          {% if lic.notes %}
+            <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">{{ lic.notes }}</div>
+          {% endif %}
+        </td>
+        <td>
+          <strong>{{ lic.customer_name|default('Unassigned') }}</strong>
+          {% if lic.customer_email %}
+            <div style="font-size: 11px; color: var(--text-dim);">{{ lic.customer_email }}</div>
+          {% endif %}
+        </td>
+        <td><span class="metric-badge badge-blue">{{ lic.license_type }}</span></td>
+        <td>
+          <span style="font-weight: 600; color: {% if lic.active_device_count >= lic.max_devices %}#f87171{% else %}#34d399{% endif %};">
+            {{ lic.active_device_count|default(0) }} / {{ lic.max_devices }}
+          </span>
+          <a href="{{ url_for('devices_list') }}" style="font-size: 10px; color: #60a5fa; margin-left: 4px; text-decoration: none;">View</a>
+        </td>
+        <td>
+          {% if lic.is_permanent %}
+            <span style="color: #34d399; font-weight: 600;">Permanent</span>
+          {% elif lic.expires_at %}
+            <strong>{{ lic.expires_at[:10] }}</strong>
+            <div style="font-size: 10px; color: var(--text-dim);">{{ lic.duration_days|default('—') }} total days</div>
+          {% else %}
+            <span style="color: #fbbf24;">{{ lic.duration_days }} days</span>
+            <div style="font-size: 10px; color: var(--text-dim);">Starts on 1st use</div>
+          {% endif %}
+        </td>
+        <td>
+          {% if lic.status == 'active' %}
+            <span class="metric-badge badge-green">Active</span>
+          {% elif lic.status == 'suspended' %}
+            <span class="metric-badge badge-yellow">Suspended</span>
+          {% elif lic.status == 'revoked' %}
+            <span class="metric-badge badge-red">Revoked</span>
+          {% else %}
+            <span class="metric-badge badge-dim">{{ lic.status|title }}</span>
+          {% endif %}
+        </td>
+        <td style="text-align: right;">
+          <div style="display: inline-flex; gap: 6px; align-items: center;">
+            <!-- Quick Renew +30d -->
+            <form method="post" action="{{ url_for('renew_license', lic_id=lic.id) }}" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="extra_days" value="30">
+              <button type="submit" class="btn btn-secondary btn-sm" title="Extend by 30 days" style="color: #34d399;">+30d Renew</button>
+            </form>
+
+            <!-- Status Controls -->
+            {% if lic.status == 'active' %}
+              <form method="post" action="{{ url_for('change_license_status', lic_id=lic.id) }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="status" value="suspended">
+                <button type="submit" class="btn btn-secondary btn-sm" title="Temporarily Suspend" style="color: #fbbf24;">Pause</button>
+              </form>
+              <form method="post" action="{{ url_for('change_license_status', lic_id=lic.id) }}" style="display:inline;" onsubmit="return confirm('Revoke license permanently?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="status" value="revoked">
+                <button type="submit" class="btn btn-danger btn-sm" title="Revoke">Revoke</button>
+              </form>
+            {% else %}
+              <form method="post" action="{{ url_for('change_license_status', lic_id=lic.id) }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="status" value="active">
+                <button type="submit" class="btn btn-success btn-sm" title="Reactivate License">Reactivate</button>
+              </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 36px;">No licenses found matching criteria.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
